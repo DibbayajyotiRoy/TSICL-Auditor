@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from '@/components/shell/Layout'
 import { SoundProvider } from '@/lib/sound'
@@ -38,6 +39,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
         <Toaster position="bottom-right" />
+        <Analytics />
       </TooltipProvider>
     </SoundProvider>
   )
