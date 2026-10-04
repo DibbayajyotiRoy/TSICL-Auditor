@@ -1,0 +1,85 @@
+/* Restyles driver.js (base css imported in main.tsx) to match the app. Uses the app's tokens, so light/dark just work. */
+.driver-popover.tsicl-tour {
+  font-family: var(--font-sans);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 20px;
+  min-width: 280px;
+  max-width: 340px;
+  box-shadow: 0 12px 40px -12px oklch(0 0 0 / 0.25);
+}
+.tsicl-tour .driver-popover-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  padding-right: 28px;
+}
+.tsicl-tour .driver-popover-description {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+.tsicl-tour .driver-popover-close-btn {
+  color: var(--muted-foreground);
+  border-radius: 0.5rem;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  top: 4px;
+  right: 4px;
+}
+.tsicl-tour .driver-popover-close-btn:hover,
+.tsicl-tour .driver-popover-close-btn:focus-visible {
+  color: var(--popover-foreground);
+  background: var(--muted);
+}
+.tsicl-tour .driver-popover-footer { margin-top: 18px; }
+.tsicl-tour .driver-popover-progress-text {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.tsicl-tour .driver-popover-footer-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--popover-foreground);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 150ms ease-out;
+}
+.tsicl-tour .driver-popover-footer-btn:hover,
+.tsicl-tour .driver-popover-footer-btn:focus-visible { background: var(--muted); }
+.tsicl-tour .driver-popover-next-btn {
+  background: var(--ai);
+  border-color: var(--ai);
+  color: oklch(0.99 0 0);
+}
+.tsicl-tour .driver-popover-next-btn:hover,
+.tsicl-tour .driver-popover-next-btn:focus-visible {
+  background: color-mix(in oklch, var(--ai) 88%, black);
+}
+.dark .tsicl-tour .driver-popover-next-btn { color: oklch(0.18 0.04 285); }
+.dark .tsicl-tour .driver-popover-next-btn:hover,
+.dark .tsicl-tour .driver-popover-next-btn:focus-visible { background: color-mix(in oklch, var(--ai) 88%, white); }
+.tsicl-tour .driver-popover-footer-btn:focus-visible,
+.tsicl-tour .driver-popover-close-btn:focus-visible {
+  outline: 2px solid var(--ai);
+  outline-offset: 2px;
+}
+/* arrow follows the popover surface in both themes */
+.tsicl-tour .driver-popover-arrow { border-color: var(--popover); }
+.tsicl-tour .driver-popover-arrow-side-left { border-top-color: transparent; border-bottom-color: transparent; border-right-color: transparent; }
+.tsicl-tour .driver-popover-arrow-side-right { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; }
+.tsicl-tour .driver-popover-arrow-side-top { border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+.tsicl-tour .driver-popover-arrow-side-bottom { border-top-color: transparent; border-left-color: transparent; border-right-color: transparent; }

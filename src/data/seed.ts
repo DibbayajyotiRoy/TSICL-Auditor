@@ -1,0 +1,142 @@
+// Deterministic demo dataset. No randomness: every reload and every worker sees the same numbers.
+// Demo "today" is TODAY (2026-10-04); the quarter under audit is Q2 FY 2026-27 (Jul–Sep 2026),
+// with a few FY 2024-25 / 2025-26 rows for multi-year coverage (per the EOI).
+// Keep PO-2026-184 exactly as-is: the demo script, the assistant self-check and several
+// comments reference it.
+import { RULES } from './rules.ts'
+import type { SeedData } from './store'
+
+export function seed(): SeedData {
+  return {
+    divisions: [
+      { id: 'D1', name: 'Handloom Division', location: 'Agartala HO', officer: 'S. Debbarma', email: 'handloom@tsicl-demo.in' },
+      { id: 'D2', name: 'Dharmanagar Unit', location: 'Dharmanagar', officer: 'R. Nath', email: 'dharmanagar@tsicl-demo.in' },
+      { id: 'D3', name: 'Udaipur Rubber Unit', location: 'Udaipur', officer: 'P. Das', email: 'udaipur@tsicl-demo.in' },
+      { id: 'D4', name: 'Belonia Bamboo Unit', location: 'Belonia', officer: 'K. Tripura', email: 'belonia@tsicl-demo.in' },
+      { id: 'D5', name: 'Kailashahar Engineering Unit', location: 'Kailashahar', officer: 'M. Reang', email: 'kailashahar@tsicl-demo.in' },
+    ],
+
+    documents: [
+      { id: 'DOC-0001', name: 'PO_2026-184_Tripura_Steel.pdf', kind: 'purchase_order', divisionId: 'D1', receivedAt: '2026-07-15T10:12:00+05:30', source: 'email', from: 'handloom@tsicl-demo.in', status: 'extracted', confidence: 0.96, pages: 3,
+        fields: { poNumber: 'PO-2026-184', vendor: 'Tripura Steel Works', item: 'Loom spare parts', quantity: 120, amount: 842000, date: '2026-07-14', approvedBy: 'Deputy Manager' } },
+      { id: 'DOC-0002', name: 'Invoice_184_Tripura_Steel.pdf', kind: 'invoice', divisionId: 'D1', receivedAt: '2026-08-04T11:02:00+05:30', source: 'email', from: 'handloom@tsicl-demo.in', status: 'extracted', confidence: 0.94, pages: 2,
+        fields: { invoiceNo: 'INV/184/26-27', vendor: 'Tripura Steel Works', item: 'Loom spare parts', amount: 842000, date: '2026-08-01', gstin: '16ABCDE1841F1Z5' } },
+      { id: 'DOC-0003', name: 'GRN_184_Dharmanagar.pdf', kind: 'grn', divisionId: 'D1', receivedAt: '2026-08-05T09:40:00+05:30', source: 'email', from: 'handloom@tsicl-demo.in', status: 'extracted', confidence: 0.93, pages: 1,
+        fields: { grnNo: 'GRN-184', poNumber: 'PO-2026-184', vendor: 'Tripura Steel Works', quantity: 120, date: '2026-08-02' } },
+      { id: 'DOC-0004', name: 'Invoice_RB118_Gomati_Rubber.pdf', kind: 'invoice', divisionId: 'D3', receivedAt: '2026-08-19T12:20:00+05:30', source: 'email', from: 'udaipur@tsicl-demo.in', status: 'extracted', confidence: 0.88, pages: 2,
+        fields: { invoiceNo: 'INV/RB/118/26-27', vendor: 'Gomati Rubber Industries', item: 'Rubber latex drums', amount: 520000, date: '2026-08-16' } },
+      { id: 'DOC-0005', name: 'Payment_Voucher_231.pdf', kind: 'payment_voucher', divisionId: 'D4', receivedAt: '2026-08-22T10:05:00+05:30', source: 'email', from: 'belonia@tsicl-demo.in', status: 'extracted', confidence: 0.91, pages: 1,
+        fields: { voucherNo: 'PV/231', vendor: 'Khowai Agro Services', amount: 240000, date: '2026-08-20', mode: 'NEFT', approvedBy: 'Manager (Finance)' } },
+      { id: 'DOC-0006', name: 'Bank_Statement_Q2_FY27.pdf', kind: 'bank_statement', divisionId: 'D1', receivedAt: '2026-10-01T09:15:00+05:30', source: 'email', from: 'handloom@tsicl-demo.in', status: 'extracted', confidence: 0.97, pages: 14,
+        fields: { bank: 'State Bank of India, Agartala Main', account: 'XXXXXX4821', period: 'Jul – Sep 2026', closingBalance: 48200000 } },
+      { id: 'DOC-0007', name: 'Scrap_Auction_Lot_214.pdf', kind: 'scrap_auction', divisionId: 'D2', receivedAt: '2026-09-08T14:30:00+05:30', source: 'email', from: 'dharmanagar@tsicl-demo.in', status: 'extracted', confidence: 0.9, pages: 4,
+        fields: { lotNo: 'LOT-214', item: 'Scrap machinery and metal', reservePrice: 180000, amount: 142000, buyer: 'Dhalai Timber Traders', bids: 1, date: '2026-09-05' } },
+      { id: 'DOC-0008', name: 'Scrap_Auction_Lot_209.pdf', kind: 'scrap_auction', divisionId: 'D5', receivedAt: '2026-08-11T11:45:00+05:30', source: 'email', from: 'kailashahar@tsicl-demo.in', status: 'extracted', confidence: 0.92, pages: 4,
+        fields: { lotNo: 'LOT-209', item: 'Condemned office furniture', reservePrice: 95000, amount: 121000, buyer: 'Agartala Bamboo Crafts', bids: 4, date: '2026-08-08' } },
+      { id: 'DOC-0009', name: 'Asset_Register_Dharmanagar_Q2.xlsx', kind: 'asset_register', divisionId: 'D2', receivedAt: '2026-09-15T10:00:00+05:30', source: 'email', from: 'dharmanagar@tsicl-demo.in', status: 'extracted', confidence: 0.95, pages: 6,
+        fields: { assetCount: 42, totalCost: 18600000, location: 'Dharmanagar' } },
+      { id: 'DOC-0010', name: 'Payment_Voucher_198.pdf', kind: 'payment_voucher', divisionId: 'D1', receivedAt: '2026-09-02T13:10:00+05:30', source: 'email', from: 'handloom@tsicl-demo.in', status: 'extracted', confidence: 0.93, pages: 1,
+        fields: { voucherNo: 'PV/198', vendor: 'Bodhjung Electricals', amount: 120000, date: '2026-08-30', mode: 'RTGS', approvedBy: 'Manager (Finance)', tds: 'CHALLAN-281/26-27' } },
+      { id: 'DOC-0011', name: 'Scan_Payment_Voucher_Sept.jpg', kind: 'payment_voucher', divisionId: 'D2', receivedAt: '2026-09-28T16:40:00+05:30', source: 'email', from: 'dharmanagar@tsicl-demo.in', status: 'needs_review', confidence: 0.62, pages: 1,
+        fields: { voucherNo: 'PV/302', amount: 88000, date: '2026-09-26' } },
+      { id: 'DOC-0012', name: 'Payment_Voucher_276.pdf', kind: 'payment_voucher', divisionId: 'D3', receivedAt: '2026-09-06T12:00:00+05:30', source: 'email', from: 'udaipur@tsicl-demo.in', status: 'extracted', confidence: 0.9, pages: 1,
+        fields: { voucherNo: 'PV/276', vendor: 'Staff advance — P. Das', amount: 65000, date: '2026-09-05', mode: 'Cheque' } },
+      { id: 'DOC-0013', name: 'Scan_Invoice_418.jpg', kind: 'invoice', divisionId: 'D5', receivedAt: '2026-09-29T15:25:00+05:30', source: 'upload', status: 'needs_review', confidence: 0.58, pages: 1,
+        fields: { invoiceNo: 'INV/418/26-27', amount: 74000, date: '2026-09-27' } },
+    ],
+
+    purchaseOrders: [
+      { id: 'PO-2026-184', vendor: 'Tripura Steel Works', item: 'Loom spare parts', divisionId: 'D1', date: '2026-07-14', amount: 842000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 1, grnDate: '2026-08-02', invoiceAmount: 842000, invoiceNo: 'INV/184/26-27', paymentDate: '2026-08-20', docIds: ['DOC-0001', 'DOC-0002', 'DOC-0003'] },
+      { id: 'PO-2026-191', vendor: 'Gomati Rubber Industries', item: 'Rubber latex drums', divisionId: 'D3', date: '2026-07-22', amount: 2800000, approvedBy: 'General Manager', approverLimit: 2500000, quotations: 1, grnDate: '2026-08-25', invoiceAmount: 2860000, invoiceNo: 'INV/RB/118/26-27', paymentDate: '2026-09-10', docIds: ['DOC-0004'] },
+      { id: 'PO-2026-176', vendor: 'Bodhjung Electricals', item: 'Diesel generator set', divisionId: 'D2', date: '2026-07-08', amount: 1240000, approvedBy: 'Manager (Finance)', approverLimit: 1000000, quotations: 3, grnDate: '2026-07-30', invoiceAmount: 1240000, invoiceNo: 'INV/176/26-27', paymentDate: '2026-07-25', docIds: [] },
+      { id: 'PO-2026-201', vendor: 'Khowai Agro Services', item: 'Cane furniture raw material', divisionId: 'D4', date: '2026-08-04', amount: 82000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 2, grnDate: '2026-08-18', invoiceAmount: 82000, invoiceNo: 'INV/201/26-27', paymentDate: '2026-09-02', docIds: [] },
+      { id: 'PO-2026-207', vendor: 'Khowai Agro Services', item: 'Cane furniture raw material', divisionId: 'D4', date: '2026-08-11', amount: 78500, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 2, grnDate: '2026-08-24', invoiceAmount: 78500, invoiceNo: 'INV/207/26-27', paymentDate: '2026-09-09', docIds: [] },
+      { id: 'PO-2026-213', vendor: 'Khowai Agro Services', item: 'Cane furniture raw material', divisionId: 'D4', date: '2026-08-19', amount: 84000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 3, grnDate: '2026-09-01', invoiceAmount: 84000, invoiceNo: 'INV/213/26-27', paymentDate: '2026-09-16', docIds: [] },
+      { id: 'PO-2026-188', vendor: 'North East Handloom Yarns', item: 'Cotton yarn, 40s count', divisionId: 'D1', date: '2026-07-18', amount: 425000, approvedBy: 'Manager (Finance)', approverLimit: 1000000, quotations: 2, grnDate: '2026-08-05', invoiceAmount: 425000, invoiceNo: 'INV/188/26-27', paymentDate: '2026-09-02', docIds: [] },
+      { id: 'PO-2026-195', vendor: 'Sri Lakshmi Packaging', item: 'Packaging cartons', divisionId: 'D5', date: '2026-07-28', amount: 196000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 1, grnDate: '2026-08-12', invoiceAmount: 196000, invoiceNo: 'INV/195/26-27', paymentDate: '2026-08-28', docIds: [] },
+      { id: 'PO-2026-220', vendor: 'Unakoti Stone Suppliers', item: 'Stone chips for godown flooring', divisionId: 'D2', date: '2026-08-26', amount: 640000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 3, docIds: [] },
+      { id: 'PO-2026-231', vendor: 'Agartala Bamboo Crafts', item: 'Bamboo splits', divisionId: 'D4', date: '2026-09-04', amount: 310000, approvedBy: 'Manager (Finance)', approverLimit: 1000000, quotations: 1, grnDate: '2026-09-20', invoiceAmount: 322000, invoiceNo: 'INV/231/26-27', paymentDate: '2026-09-28', docIds: [] },
+      { id: 'PO-2025-156', vendor: 'Dhalai Timber Traders', item: 'Wooden packing cases', divisionId: 'D5', date: '2025-11-14', amount: 890000, approvedBy: 'Manager (Finance)', approverLimit: 1000000, quotations: 3, grnDate: '2025-12-02', invoiceAmount: 890000, invoiceNo: 'INV/156/25-26', paymentDate: '2025-12-20', docIds: [] },
+      { id: 'PO-2025-087', vendor: 'Kailashahar Engineering Co.', item: 'Lathe machine spares', divisionId: 'D5', date: '2025-02-10', amount: 1150000, approvedBy: 'General Manager', approverLimit: 2500000, quotations: 2, grnDate: '2025-03-04', invoiceAmount: 1150000, invoiceNo: 'INV/087/25-26', paymentDate: '2025-03-22', docIds: [] },
+      { id: 'PO-2026-226', vendor: 'Tripura Steel Works', item: 'Steel almirahs', divisionId: 'D1', date: '2026-08-30', amount: 2150000, approvedBy: 'Manager (Finance)', approverLimit: 1000000, quotations: 4, grnDate: '2026-09-22', invoiceAmount: 2150000, invoiceNo: 'INV/226/26-27', docIds: [] },
+      { id: 'PO-2026-238', vendor: 'Bodhjung Electricals', item: 'Laptop computers', divisionId: 'D1', date: '2026-09-12', amount: 480000, approvedBy: 'Deputy Manager', approverLimit: 600000, quotations: 1, grnDate: '2026-09-25', invoiceAmount: 480000, invoiceNo: 'INV/238/26-27', docIds: [] },
+    ],
+
+    receivables: [
+      { id: 'RC-01', customer: 'Dept. of Handloom & Handicrafts, Govt. of Tripura', divisionId: 'D1', invoiceNo: 'INV/HL/2025-03', invoiceDate: '2025-11-20', amount: 1240000 },
+      { id: 'RC-02', customer: 'Directorate of Industries & Commerce', divisionId: 'D3', invoiceNo: 'INV/RB/2026-01', invoiceDate: '2026-02-12', amount: 860000 },
+      { id: 'RC-03', customer: "Tripura Apex Weavers' Society", divisionId: 'D1', invoiceNo: 'INV/HL/2026-04', invoiceDate: '2026-03-28', amount: 425000 },
+      { id: 'RC-04', customer: 'Agartala Municipal Corporation', divisionId: 'D2', invoiceNo: 'INV/ST/2026-05', invoiceDate: '2026-05-18', amount: 310000, lastPaymentDate: '2026-06-20' },
+      { id: 'RC-05', customer: 'Khowai Agro Traders', divisionId: 'D4', invoiceNo: 'INV/BB/2026-07', invoiceDate: '2026-07-10', amount: 185000 },
+      { id: 'RC-06', customer: 'Belonia Bamboo Works', divisionId: 'D4', invoiceNo: 'INV/BB/2026-08', invoiceDate: '2026-08-22', amount: 96000 },
+      { id: 'RC-07', customer: 'Udaipur Rubber Processors', divisionId: 'D3', invoiceNo: 'INV/RB/2026-09', invoiceDate: '2026-09-14', amount: 240000 },
+      { id: 'RC-08', customer: 'Gomati District Handloom Cluster', divisionId: 'D3', invoiceNo: 'INV/RB/2026-10', invoiceDate: '2026-09-20', amount: 88000 },
+      { id: 'RC-09', customer: 'Office of the DM, Dhalai', divisionId: 'D5', invoiceNo: 'INV/EN/2026-06', invoiceDate: '2026-06-05', amount: 520000 },
+      { id: 'RC-10', customer: 'North Tripura Woodcraft Unit', divisionId: 'D2', invoiceNo: 'INV/ST/2026-02', invoiceDate: '2026-01-15', amount: 150000, lastPaymentDate: '2026-09-25' },
+    ],
+
+    bankReceipts: [
+      { id: 'BR-01', date: '2026-08-14', amount: 150000, narration: 'NEFT from North Tripura Woodcraft, INV/ST/2026-02, full payment', matchedReceivableId: 'RC-10' },
+      { id: 'BR-02', date: '2026-09-02', amount: 200000, narration: 'RTGS Khowai Agro Traders INV/BB/2026-07 part payment', matchedReceivableId: 'RC-05' },
+      { id: 'BR-03', date: '2026-09-18', amount: 96000, narration: 'NEFT Belonia Bamboo Works INV/BB/2026-08', },
+      { id: 'BR-04', date: '2026-07-29', amount: 45500, narration: 'Cash deposit, Dharmanagar counter — narration unclear', },
+      { id: 'BR-05', date: '2026-09-26', amount: 132000, narration: 'RTGS from Gomati Traders, no invoice reference given', },
+      { id: 'BR-06', date: '2026-09-30', amount: 240000, narration: 'NEFT Udaipur Rubber Processors INV/RB/2026-09', matchedReceivableId: 'RC-07' },
+    ],
+
+    assets: [
+      { id: 'A-01', tag: 'TSICL-000101', name: 'Power loom, 48 inch', category: 'Machinery', cost: 485000, purchaseDate: '2024-06-12', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-07-21T10:00:00+05:30', verification: 'found' },
+      { id: 'A-02', tag: 'TSICL-000102', name: 'Power loom, 48 inch', category: 'Machinery', cost: 485000, purchaseDate: '2024-06-12', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-07-21T10:00:00+05:30', verification: 'found' },
+      { id: 'A-03', tag: 'TSICL-000103', name: 'Diesel generator 25 kVA', category: 'Machinery', cost: 1240000, purchaseDate: '2026-07-30', location: 'Dharmanagar', assignedTo: 'R. Nath', lastVerified: '2026-09-10T10:00:00+05:30', verification: 'found' },
+      { id: 'A-04', tag: 'TSICL-000104', name: 'Godown shed, bamboo depot', category: 'Building', cost: 3200000, purchaseDate: '2023-03-18', location: 'Belonia', assignedTo: 'K. Tripura', lastVerified: '2026-08-14T10:00:00+05:30', verification: 'found' },
+      { id: 'A-05', tag: 'TSICL-000105', name: 'Mahindra Bolero pickup', category: 'Vehicle', cost: 985000, purchaseDate: '2024-11-02', location: 'Udaipur', assignedTo: 'P. Das', lastVerified: '2026-08-02T10:00:00+05:30', verification: 'found' },
+      { id: 'A-06', tag: 'TSICL-000106', name: 'Laptop computers (10 nos)', category: 'IT', cost: 480000, purchaseDate: '2026-09-25', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-09-30T10:00:00+05:30', verification: 'found' },
+      { id: 'A-07', tag: 'TSICL-000107', name: 'Steel almirah, godown', category: 'Furniture', cost: 42000, purchaseDate: '2025-05-11', location: 'Kailashahar', assignedTo: 'M. Reang', lastVerified: '2026-06-19T10:00:00+05:30', verification: 'found' },
+      { id: 'A-08', tag: 'TSICL-000107', name: 'Steel almirah, office (duplicate entry)', category: 'Furniture', cost: 42000, purchaseDate: '2025-05-11', location: 'Kailashahar', assignedTo: 'M. Reang', verification: 'pending' },
+      { id: 'A-09', tag: 'TSICL-000109', name: 'Rubber sheet press', category: 'Machinery', cost: 760000, purchaseDate: '2023-09-25', location: 'Udaipur', assignedTo: 'P. Das', lastVerified: '2025-11-02T10:00:00+05:30', verification: 'missing' },
+      { id: 'A-10', tag: 'TSICL-000110', name: 'Office computers (6 nos)', category: 'IT', cost: 390000, purchaseDate: '2024-02-14', location: 'Dharmanagar', assignedTo: 'R. Nath', lastVerified: '2025-10-18T10:00:00+05:30', verification: 'missing' },
+      { id: 'A-11', tag: 'TSICL-000111', name: 'Lathe machine', category: 'Machinery', cost: 1150000, purchaseDate: '2025-03-04', location: 'Kailashahar', assignedTo: 'M. Reang', verification: 'pending' },
+      { id: 'A-12', tag: 'TSICL-000112', name: 'Wooden work tables (20 nos)', category: 'Furniture', cost: 180000, purchaseDate: '2024-08-30', location: 'Kailashahar', assignedTo: 'M. Reang', verification: 'pending' },
+      { id: 'A-13', tag: 'TSICL-000113', name: 'Water pump set', category: 'Machinery', cost: 95000, purchaseDate: '2024-04-17', location: 'Belonia', assignedTo: 'K. Tripura', verification: 'pending' },
+      { id: 'A-14', tag: 'TSICL-000114', name: 'Revolving chairs (30 nos)', category: 'Furniture', cost: 210000, purchaseDate: '2026-05-20', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-07-08T10:00:00+05:30', verification: 'found' },
+      { id: 'A-15', tag: 'TSICL-000115', name: 'CCTV system, godown', category: 'IT', cost: 145000, purchaseDate: '2026-06-11', location: 'Dharmanagar', assignedTo: 'R. Nath', lastVerified: '2026-09-12T10:00:00+05:30', verification: 'found' },
+      { id: 'A-16', tag: 'TSICL-000116', name: 'Bamboo treatment tank', category: 'Machinery', cost: 530000, purchaseDate: '2025-08-22', location: 'Belonia', assignedTo: 'K. Tripura', lastVerified: '2026-09-05T10:00:00+05:30', verification: 'found' },
+      { id: 'A-17', tag: 'TSICL-000117', name: 'Two-wheeler, field visits', category: 'Vehicle', cost: 88000, purchaseDate: '2025-12-15', location: 'Dharmanagar', assignedTo: 'P. Das', lastVerified: '2026-09-12T10:00:00+05:30', verification: 'found' },
+      { id: 'A-18', tag: 'TSICL-000118', name: 'Air conditioners (4 nos)', category: 'Other', cost: 168000, purchaseDate: '2026-04-28', location: 'Agartala HO', lastVerified: '2026-08-20T10:00:00+05:30', verification: 'found' },
+      { id: 'A-19', tag: 'TSICL-000119', name: 'Weighbridge, Udaipur yard', category: 'Machinery', cost: 890000, purchaseDate: '2024-12-08', location: 'Udaipur', assignedTo: 'P. Das', lastVerified: '2026-07-30T10:00:00+05:30', verification: 'found' },
+      { id: 'A-20', tag: 'TSICL-000120', name: 'Fire extinguishers (12 nos)', category: 'Other', cost: 54000, purchaseDate: '2026-07-19', location: 'Kailashahar', assignedTo: 'M. Reang', lastVerified: '2026-09-18T10:00:00+05:30', verification: 'found' },
+      { id: 'A-21', tag: 'TSICL-000121', name: 'Coir spinning machine', category: 'Machinery', cost: 640000, purchaseDate: '2023-07-07', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-09-02T10:00:00+05:30', verification: 'damaged' },
+      { id: 'A-22', tag: 'TSICL-000122', name: 'Solar lighting, depot', category: 'Other', cost: 230000, purchaseDate: '2026-08-09', location: 'Belonia', assignedTo: 'K. Tripura', verification: 'pending' },
+      { id: 'A-23', tag: 'TSICL-000123', name: 'Handloom frames (15 nos)', category: 'Machinery', cost: 375000, purchaseDate: '2025-09-14', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2025-12-20T10:00:00+05:30', verification: 'found' },
+      { id: 'A-24', tag: 'TSICL-000124', name: 'Printer-copier, HO accounts', category: 'IT', cost: 62000, purchaseDate: '2026-09-01', location: 'Agartala HO', assignedTo: 'S. Debbarma', lastVerified: '2026-09-30T10:00:00+05:30', verification: 'found' },
+    ],
+
+    rules: RULES,
+
+    requests: [
+      { id: 'REQ-01', divisionId: 'D2', subject: 'Bank statements and vouchers for Q2', sentAt: '2026-09-10T10:00:00+05:30', deadline: '2026-09-25', stage: 'reminder_2',
+        items: [{ label: 'Bank statement, Jul–Sep 2026', received: true }, { label: 'Payment vouchers for September', received: false }, { label: 'Cash book extract', received: false }],
+        timeline: [{ at: '2026-09-10T10:00:00+05:30', event: 'Request sent to Dharmanagar Unit' }, { at: '2026-09-17T10:00:00+05:30', event: 'Reminder #1 sent (scheduled follow-up)' }, { at: '2026-09-24T10:00:00+05:30', event: 'Reminder #2 sent (scheduled follow-up)' }] },
+      { id: 'REQ-02', divisionId: 'D4', subject: 'Quotations for cane purchase orders', sentAt: '2026-09-22T10:00:00+05:30', deadline: '2026-10-08', stage: 'sent',
+        items: [{ label: 'Quotations for PO-2026-201, 207 and 213', received: false }],
+        timeline: [{ at: '2026-09-22T10:00:00+05:30', event: 'Request sent to Belonia Bamboo Unit' }] },
+      { id: 'REQ-03', divisionId: 'D3', subject: 'GRN for latex drums (PO-2026-191)', sentAt: '2026-08-20T10:00:00+05:30', deadline: '2026-09-05', stage: 'completed',
+        items: [{ label: 'GRN for PO-2026-191', received: true }, { label: 'Weighment slips', received: true }],
+        timeline: [{ at: '2026-08-20T10:00:00+05:30', event: 'Request sent to Udaipur Rubber Unit' }, { at: '2026-09-03T10:00:00+05:30', event: 'All documents received' }] },
+      { id: 'REQ-04', divisionId: 'D5', subject: 'Asset register with locations', sentAt: '2026-09-02T10:00:00+05:30', deadline: '2026-09-20', stage: 'escalated',
+        items: [{ label: 'Asset register with locations and custodians', received: false }, { label: 'Condemnation proposals, if any', received: false }],
+        timeline: [{ at: '2026-09-02T10:00:00+05:30', event: 'Request sent to Kailashahar Engineering Unit' }, { at: '2026-09-09T10:00:00+05:30', event: 'Reminder #1 sent (scheduled follow-up)' }, { at: '2026-09-16T10:00:00+05:30', event: 'Reminder #2 sent (scheduled follow-up)' }, { at: '2026-09-23T10:00:00+05:30', event: 'Escalation recommended — awaiting your approval' }] },
+    ],
+
+    activity: [
+      { id: 'E1', at: '2026-10-04T09:42:00+05:30', kind: 'finding', text: 'AI-assisted checks raised 3 new findings from the Dharmanagar documents' },
+      { id: 'E2', at: '2026-10-03T16:20:00+05:30', kind: 'doc_received', text: 'Received Bank_Statement_Q2_FY27.pdf from Handloom Division' },
+      { id: 'E3', at: '2026-10-03T11:05:00+05:30', kind: 'reminder', text: 'Reminder #2 sent to Dharmanagar Unit — Bank statements and vouchers for Q2' },
+      { id: 'E4', at: '2026-10-02T15:48:00+05:30', kind: 'escalation', text: 'Escalation recommended for Kailashahar Engineering Unit — awaiting your approval' },
+      { id: 'E5', at: '2026-10-02T10:12:00+05:30', kind: 'ai', text: 'Audit checks re-run: findings confirmed across 20 active checks' },
+      { id: 'E6', at: '2026-10-01T14:33:00+05:30', kind: 'doc_received', text: 'Received Asset_Register_Dharmanagar_Q2.xlsx from Dharmanagar Unit' },
+      { id: 'E7', at: '2026-10-01T10:02:00+05:30', kind: 'finding', text: 'F-R01-PO-2026-184 flagged: loom spares approved above delegated power' },
+      { id: 'E8', at: '2026-09-30T17:15:00+05:30', kind: 'report', text: 'Q1 FY 2026-27 report draft was generated for review' },
+    ],
+  }
+}

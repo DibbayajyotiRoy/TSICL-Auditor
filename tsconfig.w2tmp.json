@@ -1,0 +1,1 @@
+{ "extends": "./tsconfig.app.json", "compilerOptions": { "tsBuildInfoFile": "./node_modules/.tmp/w2.tsbuildinfo" }, "include": ["src/components/shell", "src/components/kit.tsx", "src/lib/ui.ts", "src/vite-env.d.ts"] }
