@@ -33,6 +33,72 @@ export function intent(q: string): Intent {
   return best
 }
 
+// ---------------------------------------------------------------- chit-chat
+// Friendly talk that needs no audit data (greetings, thanks, weather, "who are you").
+// The live model answers these freely; offline we use short canned trilingual lines.
+// Only used when the question is NOT about audit data: any finding/PO id or audit
+// intent wins over chit-chat, so "hello, what are the risks?" still goes to risks().
+export type ChatKind = 'greet' | 'thanks' | 'bye' | 'who' | 'weather' | 'able'
+const CHAT: [ChatKind, RegExp][] = [
+  ['thanks', /\b(thanks|thank you|thx|dhonnobad|ধন্যবাদ|shukriya|शुक्रिया)\b/i],
+  ['bye', /\b(bye|goodbye|good night|see you|alvida|বিদায়|अलविदा)\b/i],
+  ['who', /(who are you|your name|what are you|about yourself|তুমি কে|तुम कौन|आप कौन)/i],
+  ['weather', /\b(weather|mausam|temperature|rain\b|বৃষ্টি|আবহাওয়া|मौसम|बारिश)\b/i],
+  ['able', /(what can you do|how do you work|how can you help|কী করতে পার|क्या कर सकते|commands|features)/i],
+  ['greet', /^(hi+|hii+|hello|hey|namaste|namaskar|good (morning|afternoon|evening)|নমস্কার|नमस्ते)\b/i],
+]
+
+export function smallTalkKind(q: string): ChatKind | undefined {
+  const s = q.trim()
+  if (s.length > 60) return undefined // a long message is never just chit-chat
+  for (const [kind, re] of CHAT) if (re.test(s)) return kind
+  return undefined
+}
+
+/** Chit-chat only when nothing audit-related is in the question. */
+export function chitChat(question: string, d: Data): ChatKind | undefined {
+  if (knownIds(question, d).length) return undefined
+  if (/\bPO-\d{4}-\d+\b|\bF-[A-Za-z0-9-]*\d[A-Za-z0-9-]*/i.test(question)) return undefined
+  if (intent(question) !== 'help') return undefined
+  return smallTalkKind(question)
+}
+
+function smallTalk(kind: ChatKind, f: Facts, t: Tr): string {
+  switch (kind) {
+    case 'thanks':
+      return t(`You're welcome! Anything else — a risk, a due, a delay?`,
+        `আপনাকে স্বাগতম! আর কিছু — কোনো ঝুঁকি, বকেয়া বা দেরি?`,
+        `आपका स्वागत है! और कुछ — कोई जोखिम, बकाया या देरी?`)
+    case 'bye':
+      return t(`Goodbye! I'll keep an eye on the audit data until next time.`,
+        `বিদায়! পরের বার দেখা হওয়া পর্যন্ত নিরীক্ষার তথ্যের দিকে নজর রাখছি।`,
+        `अलविदा! अगली बार तक मैं ऑडिट डेटा पर नज़र रखूँगा।`)
+    case 'who':
+      return t(`I'm the audit assistant inside TSICL's workspace. I read this quarter's documents, flag what looks wrong, and explain it in plain words — but I never decide. The auditor decides.`,
+        `আমি TSICL কর্মক্ষেত্রের নিরীক্ষা সহকারী। এই ত্রৈমাসিকের নথি পড়ি, সমস্যা মনে হলে দেখাই, সহজ ভাষায় বুঝিয়ে দিই — কিন্তু সিদ্ধান্ত নিই না। সিদ্ধান্ত নেবেন নিরীক্ষক।`,
+        `मैं TSICL कार्यक्षेत्र का ऑडिट सहायक हूँ। इस तिमाही के दस्तावेज़ पढ़ता हूँ, गड़बड़ दिखे तो दिखाता हूँ, आसान भाषा में समझाता हूँ — पर निर्णय नहीं लेता। निर्णय ऑडिटर का है।`)
+    case 'weather':
+      return t(`I don't have a live weather feed, so I can't tell you today's weather. If you like, ask me anything else — or ask what needs attention in this quarter's audit: **${f.findings.length} open findings** right now.`,
+        `আমার কাছে সরাসরি আবহাওয়ার তথ্য নেই, তাই আজকের আবহাওয়া বলতে পারব না। চাইলে অন্য কিছু জিজ্ঞেস করুন — অথবা জিজ্ঞেস করুন এই ত্রৈমাসিকের নিরীক্ষায় কী দেখা দরকার: এখন **${f.findings.length}টি খোলা ফাইন্ডিং** আছে।`,
+        `मेरे पास लाइव मौसम की जानकारी नहीं है, इसलिए आज का मौसम नहीं बता सकता। चाहें तो कुछ और पूछिए — या पूछिए इस तिमाही के ऑडिट में क्या देखना है: अभी **${f.findings.length} खुले निष्कर्ष** हैं।`)
+    case 'able':
+      return t(`I can: explain any finding or PO by its ID, list the biggest risks, tell you who owes money and for how long, say which department is late with documents, draft reminder emails, and brief you for the Board. Try: "What are the 3 biggest risks?"`,
+        `আমি পারি: নম্বর দিয়ে যেকোনো ফাইন্ডিং বা PO বুঝিয়ে দেওয়া, বড় ঝুঁকিগুলো বলা, কে কতদিন ধরে টাকা বাকি রেখেছে বলা, কোন বিভাগ নথিতে দেরি করছে বলা, স্মরণ-চিঠির খসড়া করা, বোর্ডের জন্য সারসংক্ষেপ দেওয়া। চেষ্টা করুন: "What are the 3 biggest risks?"`,
+        `मैं कर सकता हूँ: नंबर से कोई निष्कर्ष या PO समझाना, बड़े जोखिम बताना, कौन कितने समय से पैसा बाकी रखे है बताना, कौन-सा विभाग दस्तावेज़ों में देर कर रहा है बताना, याद-पत्र का मसौदा बनाना, बोर्ड के लिए सार देना। आज़माइए: "What are the 3 biggest risks?"`)
+    case 'greet':
+      return t(`Hello! Ask me about risks, dues, delays, or any finding ID — or just say what's on your mind. Right now there are **${f.findings.length} open findings** worth a look.`,
+        `নমস্কার! ঝুঁকি, বকেয়া, দেরি বা যেকোনো ফাইন্ডিং নম্বর সম্পর্কে জিজ্ঞেস করুন — অথবা মনে যা আছে বলুন। এখন **${f.findings.length}টি খোলা ফাইন্ডিং** দেখার মতো আছে।`,
+        `नमस्ते! जोखिम, बकाया, देरी या किसी निष्कर्ष नंबर के बारे में पूछिए — या बस बताइए क्या चल रहा है। अभी **${f.findings.length} खुले निष्कर्ष** देखने लायक हैं।`)
+  }
+}
+
+/** Offline answer for chit-chat (used when the live model is unreachable, even in demo mode). */
+export function chitChatAnswer(kind: ChatKind, d: Data, lang: Lang): string {
+  const f = computeFacts(d)
+  const t: Tr = (en, bn, hi) => (lang === 'bn' ? bn : lang === 'hi' ? hi : en) ?? en
+  return smallTalk(kind, f, t)
+}
+
 const SEV_BN = { critical: 'জরুরি', high: 'গুরুত্বপূর্ণ', medium: 'শীঘ্র দেখুন', low: 'সামান্য' }
 const SEV_HI = { critical: 'ज़रूरी', high: 'महत्वपूर्ण', medium: 'जल्द जाँचें', low: 'मामूली' }
 const DISCLAIMER = (t: Tr) => t(
@@ -345,6 +411,15 @@ export function selfCheck(): string {
     ok(a.includes('Based on:') && a.split('Based on:')[1].includes(po.id), 'PO answer must cite the PO')
     if (po.amount > po.approverLimit) ok(a.includes(formatINR(po.amount - po.approverLimit)), 'PO answer must show the overage')
     ok(linkIds('PO-2026-184', d) === '[PO-2026-184](/procurement)', 'linkIds must link a known PO')
+  }
+  // chit-chat routes to small talk, audit questions never do
+  for (const [q, want] of [['hello', 'greet'], ['thanks a lot', 'thanks'], ['what is the weather like', 'weather'], ['who are you', 'who'], ['bye for now', 'bye'], ['what can you do', 'able']] as const)
+    ok(chitChat(q, d) === want, `chitChat("${q}") should be ${want}, got ${chitChat(q, d)}`)
+  for (const q of ['hello, what are the risks?', 'thanks, now show money owed', 'PO-2026-184', 'weather damage to assets']) ok(!chitChat(q, d), `chitChat("${q}") must stay on the audit path`)
+  for (const lang of ['en', 'bn', 'hi'] as const) {
+    const g = chitChatAnswer('greet', d, lang)
+    const w = chitChatAnswer('weather', d, lang)
+    ok(g.length > 20 && w.length > 20 && !/undefined|NaN|\[object/.test(g + w), `bad small-talk (${lang})`)
   }
   return `assistant selfCheck ok (${n} checks)`
 }

@@ -1,9 +1,9 @@
 // One question in, one answer out. Live Claude via the shared `ask()` when allowed (useUI.demoMode off),
 // otherwise (or on any failure) the deterministic offline brain, so the demo never breaks.
-import { ask } from '@/lib/ai'
+import { ask, askLive } from '@/lib/ai'
 import { TODAY, useAudit } from '@/data/store'
 import type { Lang } from '@/lib/ui'
-import { answer } from './offline'
+import { answer, chitChat, chitChatAnswer } from './offline'
 import { computeFacts, findFinding, findPO, knownIds, type Data } from './facts'
 
 export interface Msg { id: number; role: 'user' | 'assistant'; text: string; source?: 'ai' | 'offline'; fresh?: boolean }
@@ -61,6 +61,17 @@ export function buildSystem(d: Data, lang: Lang, question: string) {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/** Loose prompt for casual conversation: no audit data, no citations, no invented figures. */
+function generalSystem(lang: Lang) {
+  return [
+    `You are a friendly assistant inside TSICL's audit workspace app. This is casual conversation, not audit work.`,
+    `- Be warm and brief: under about 80 words. Use simple words.`,
+    `- Reply in ${LANG_NAME[lang]}.`,
+    `- You have no live data feeds (no live weather, news, or prices). If asked for live information, say so honestly in one line, then give the closest useful general answer.`,
+    `- Never invent audit findings, amounts, names, or IDs. If asked about TSICL audit data, say to ask with specifics, like a finding ID or "biggest risks".`,
+  ].join('\n')
+}
 // Keep the request small: newest messages first until the budget is used, and it must start with a user turn.
 function recent(history: Msg[]) {
   let budget = 6000
@@ -77,6 +88,15 @@ function recent(history: Msg[]) {
 /** `history` already ends with the new user message. `canon` is the English form of a suggested chip, used by the offline brain. */
 export async function respond(question: string, canon: string | undefined, history: Msg[], lang: Lang): Promise<{ text: string; source: 'ai' | 'offline' }> {
   const d: Data = useAudit.getState()
+  // Basic talk (greetings, general knowledge) is safe to generate live even in demo mode:
+  // no audit numbers are involved, so nothing demo-breaking can be invented.
+  const chat = chitChat(question, d)
+  if (chat) {
+    const live = await askLive(generalSystem(lang), recent(history))
+    if (live) return { text: live, source: 'ai' }
+    await sleep(400)
+    return { text: chitChatAnswer(chat, d, lang), source: 'offline' }
+  }
   const live = await ask(buildSystem(d, lang, question), recent(history))
   if (live) return { text: live, source: 'ai' }
   await sleep(750) // let "Reading audit data…" be seen; offline answers are otherwise instant
