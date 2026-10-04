@@ -42,6 +42,16 @@ export function makeBedrockClient(get: (name: string) => string | undefined, reg
     ? new BedrockRuntimeClient({ region, credentials: { accessKeyId, secretAccessKey, ...(sessionToken ? { sessionToken } : {}) } })
     : new BedrockRuntimeClient({ region })
 }
+
+/** Scrub secret-looking material out of server-side log lines (keys, tokens, signatures). */
+export function redact(s: string): string {
+  return s
+    .replace(/AKIA[0-9A-Z]{16}/g, 'AKIA…REDACTED')
+    .replace(/(api[_-]?key|secret|token|signature|session[_-]?token)\s*[:=]\s*['"]?[^\s'"};,]+/gi, '$1=<redacted>')
+    .replace(/Bearer\s+[A-Za-z0-9\-._~+/=]+/g, 'Bearer <redacted>')
+    .replace(/X-Amz-Signature=[0-9a-f]+/gi, 'X-Amz-Signature=<redacted>')
+}
+
 export function isBedrockConfigured(get: (name: string) => string | undefined): boolean {
   return Boolean(get('BEDROCK_MODEL_ID') || get('AWS_ACCESS_KEY_ID') || get('AWS_PROFILE'))
 }
@@ -68,7 +78,7 @@ export async function runWithBedrock(
     if (!text) return { status: 502, body: { error: 'empty' } }
     return { status: 200, body: { text } }
   } catch (e) {
-    console.error('[ai] /api/ask failed:', e instanceof Error ? e.message : e)
+    console.error('[ai] /api/ask failed:', redact(e instanceof Error ? e.message : String(e)))
     return { status: 500, body: { error: 'ai_failed' } }
   }
 }
@@ -92,7 +102,7 @@ export async function runWithAnthropic(
     if (!text) return { status: 502, body: { error: 'empty' } }
     return { status: 200, body: { text } }
   } catch (e) {
-    console.error('[ai] /api/ask failed:', e instanceof Error ? e.message : e)
+    console.error('[ai] /api/ask failed:', redact(e instanceof Error ? e.message : String(e)))
     return { status: e instanceof Anthropic.APIError && e.status ? e.status : 500, body: { error: 'ai_failed' } }
   }
 }
